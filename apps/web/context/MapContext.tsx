@@ -13,7 +13,7 @@ import { HazardLegendItem, HazardPolygon } from "@/lib/hazardZones";
 import { featureLayer, FeatureLayer } from "esri-leaflet";
 import { handleLegendExtraction, styleLayer } from "@/lib/map/styles";
 import { toast } from "sonner";
-import { Layers, stateLayerMapping } from "@/lib/map/layers";
+import { Layers, stateLayerMapping, Styles } from "@/lib/map/layers";
 import { coordToAUState } from "@/lib/utils";
 
 type LatLng = {
@@ -64,7 +64,8 @@ const MapContext = createContext<MapContextType | null>(null);
 
 export function MapProvider({ children }: { children: React.ReactNode }) {
   const mapRef = useRef<LeafletMap | null>(null);
-  const layerRef = useRef<FeatureLayer | null>(null);
+  // Changed from single layer to array of layers for multi-URL support
+  const layersRef = useRef<FeatureLayer[]>([]);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [polygons, setPolygons] = useState<HazardPolygon[]>([]);
   const [legends, setLegends] = useState<HazardLegendItem[]>([]);
@@ -81,58 +82,93 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  /**
+   * Remove all existing feature layers from the map
+   */
+  const clearAllLayers = useCallback(() => {
+    if (!mapRef.current) return;
+    
+    for (const layer of layersRef.current) {
+      layer.remove();
+      mapRef.current.removeLayer(layer);
+    }
+    layersRef.current = [];
+    setCurrentLayer(undefined);
+    setLegends([]);
+  }, []);
+
+  /**
+   * Create a feature layer for a single URL
+   */
+  const createFeatureLayer = useCallback((url: string, legendData: Styles[]): FeatureLayer => {
+    return featureLayer({
+      url: url,
+      style: (feature) => styleLayer(feature, legendData),
+      minZoom: 10,
+      simplifyFactor: 0.4,
+      cacheLayers: true,
+      ignoreRenderer: true,
+    });
+  }, []);
+
   const setMapLayer = useCallback(async (layerId?: Layers) => {
     if (!mapRef.current) {
       toast.error("Map is not Loaded yet.");
       return;
     }
-    // Remove existing layer if any
-    if (layerRef.current) {
-      layerRef.current.remove();
-      mapRef.current.removeLayer(layerRef.current);
-      layerRef.current = null;
-      setCurrentLayer(undefined);
-      setLegends([]);
-    }
+    
+    // Remove existing layers
+    clearAllLayers();
+    
     if (!layerId) {
-      return; // if no layerId provided, just remove existing layer
+      return; // if no layerId provided, just remove existing layers
     }
+    
     const mapCenter = mapRef.current.getCenter();
     const auState = coordToAUState(mapCenter.lat, mapCenter.lng);
     console.log(`Setting Layer ${layerId} for State ${auState}`);
+    
     if (!auState) {
       toast.error("Map out of supported area for this layer.");
       return;
     }
-    const toastId = toast.loading("Loading map layer...");
+    
+    const toastId = toast.loading("Loading map layers...");
+    
     try {
       const layerData = stateLayerMapping[auState][layerId];
       setCurrentLayer(layerId);
-      const legendData = await handleLegendExtraction(layerData.url); // assuming layerId 2 for legend extraction
-      const layer: FeatureLayer = featureLayer({
-        url: layerData.url,
-        style: (feature) => styleLayer(feature, legendData),
-        minZoom: 10,
-        simplifyFactor: 0.4,
-        cacheLayers: true,
-        ignoreRenderer: true,
-      });
-      layer.addTo(mapRef.current);
-      layerRef.current = layer;
+      
+      // Extract legends from all URLs (merged and deduplicated)
+      const legendData = await handleLegendExtraction(layerData.urls);
+      
+      // Create and add feature layers for each URL
+      const newLayers: FeatureLayer[] = [];
+      
+      for (const url of layerData.urls) {
+        const layer = createFeatureLayer(url, legendData);
+        layer.addTo(mapRef.current!);
+        newLayers.push(layer);
+      }
+      
+      layersRef.current = newLayers;
+      
+      // Set combined legends
       setLegends(
         legendData.map((item) => ({
           label: item.label,
           color: item.fillColor,
         }))
       );
-      console.log(`Map Layer set to: ${layerData.name}`);
+      
+      console.log(`Map Layers set to: ${layerData.name} (${layerData.urls.length} source(s))`);
     } catch (error) {
-      console.error("Error setting map layer:", error);
-      toast.error("Failed to load map layer.");
+      console.error("Error setting map layers:", error);
+      toast.error("Failed to load map layers.");
     } finally {
       toast.dismiss(toastId);
     }
-  }, []);
+  }, [clearAllLayers, createFeatureLayer]);
 
   const setView = useCallback((view: MapViewType) => {
     setMapView(view);
@@ -140,26 +176,27 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return () => {
-      layerRef.current?.remove();
+      // Cleanup all layers on unmount
+      for (const layer of layersRef.current) {
+        layer.remove();
+      }
     };
   }, []);
 
-  // 2️⃣ Spatially filter on moveend
+  // Spatially filter on moveend for all layers
   useEffect(() => {
-    if (!mapRef.current || !layerRef.current) return;
+    if (!mapRef.current || layersRef.current.length === 0) return;
 
     const updateSpatialFilter = () => {
-      console.log("Updated Query");
+      console.log("Updated Query for all layers");
       const bounds = mapRef.current!.getBounds();
 
-      // Build spatial WHERE clause
-      layerRef.current!.query().bboxIntersects(bounds).where("1=1"); // keep attribute filters here
-
-      // Apply via setWhere (forces refresh)
-      layerRef.current!.setWhere("1=1");
-      layerRef.current!.refresh();
-
-      // NOTE: bboxIntersects affects internal queries automatically
+      // Update spatial filter for all layers
+      for (const layer of layersRef.current) {
+        layer.query().bboxIntersects(bounds).where("1=1");
+        layer.setWhere("1=1");
+        layer.refresh();
+      }
     };
 
     mapRef.current.on("moveend", updateSpatialFilter);
@@ -168,7 +205,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mapRef.current?.off("moveend", updateSpatialFilter);
     };
-  }, [layerRef.current]);
+  }, [layersRef.current.length]); // Re-run when layers change
 
   return (
     <MapContext.Provider

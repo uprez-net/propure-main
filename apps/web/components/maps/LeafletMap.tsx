@@ -140,7 +140,7 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
       </MapContainer>
       {legends.length > 0 && (
         <div className="absolute z-[1000] bottom-6 right-1 p-3 bg-white/90 rounded text-sm shadow-lg">
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-20 overflow-y-auto">
             {legends.map((l) => (
               <div key={l.label} className="flex items-center gap-2">
                 <span

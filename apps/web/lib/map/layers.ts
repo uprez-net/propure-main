@@ -20,55 +20,83 @@ export type Styles = {
 
 type LayerStyles = Record<string, Styles>;
 
+/** Layer configuration with support for multiple API URLs per layer */
+export type LayerConfig = {
+    name: string;
+    /** Array of ArcGIS REST API URLs - data from all URLs will be fetched and rendered */
+    urls: string[];
+};
 
-type LayerInfo = Record<Layers, { name: string; url: string }>;
+type LayerInfo = Record<Layers, LayerConfig>;
 
 const NSW_LAYER_INFO: LayerInfo = {
     LANDIND_ZONES: {
         name: "NSW Land Zoning",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/2",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/2",
+        ],
     },
     FLOOD_HAZARD: {
         name: "NSW Flood Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/Hazard/MapServer/1",
-
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/Hazard/MapServer/1",
+        ],
     },
     BUSHFIRE_HAZARD: {
         name: "NSW Bushfire Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Bushfire_Hazard/MapServer/0",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Bushfire_Hazard/MapServer/0",
+        ],
     },
     LANDSLIDE_HAZARD: {
         name: "NSW Landslide Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/Hazard/MapServer/2",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/Hazard/MapServer/2",
+        ],
     },
     STORM_TIDE_HAZARD: {
         name: "NSW Storm Tide Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0",
+        ],
     },
-}
+};
 
 const QLD_LAYER_INFO: LayerInfo = {
     LANDIND_ZONES: {
         name: "QLD Land Zoning",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/2",
+        urls: [
+            "https://arcgis.mackay.qld.gov.au/server/rest/services/Mackay_Region_Planning_Scheme_2017/3_MRPS_MPRS_Zones/MapServer/9",
+            "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer/145",
+        ],
     },
     FLOOD_HAZARD: {
         name: "QLD Flood Hazard",
-        url: "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer/156",
+        urls: [
+            "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer/156",
+            // Add more QLD flood hazard URLs here if needed
+        ],
     },
     BUSHFIRE_HAZARD: {
         name: "QLD Bushfire Hazard",
-        url: "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer/145",
+        urls: [
+            "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer/145",
+            // Add more QLD bushfire hazard URLs here if needed
+        ],
     },
     LANDSLIDE_HAZARD: {
         name: "QLD Landslide Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0",
+        ],
     },
     STORM_TIDE_HAZARD: {
         name: "QLD Storm Tide Hazard",
-        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0",
+        urls: [
+            "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0",
+        ],
     },
-}
+};
 
 export const stateLayerMapping: Record<AustralianState, LayerInfo> = {
     [AustralianState.NSW]: NSW_LAYER_INFO,
