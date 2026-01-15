@@ -343,7 +343,7 @@ const WA_LAYER_INFO: LayerInfo = {
     FLOOD_HAZARD: {
         id: "WA_FLOOD_HAZARD",
         name: "WA Flood Hazard (Climate Projections)",
-        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Climate/MapServer/0",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Water_FS/MapServer/0",
         coverage: "state",
         propertyKey: [
             "objectid",
@@ -471,7 +471,7 @@ const ACT_LAYER_INFO: LayerInfo = {
     LANDIND_ZONES: {
         id: "ACT_LAND_ZONING",
         name: "ACT Landscape Area Assets",
-        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_Landscape_Area_Assets/FeatureServer/1",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_TP_LAND_USE_ZONE/FeatureServer/1",
         coverage: "state",
         propertyKey: [
             "OBJECTID",
@@ -603,7 +603,7 @@ const VIC_LAYER_INFO: LayerInfo = {
     FLOOD_HAZARD: {
         id: "VIC_FLOOD_HAZARD",
         name: "VIC Flood Hazard (LGA)",
-        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/arcgis/rest/services/LGA/FeatureServer/0",
+        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/ArcGIS/rest/services/VIC_Flood_Overlay/FeatureServer/2",
         coverage: "state",
         propertyKey: [
             "OBJECTID_1",
