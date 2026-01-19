@@ -2,11 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import {
-  SendHorizonalIcon,
-  SlidersHorizontal,
-  User,
-} from "lucide-react";
+import { SendHorizonalIcon, SlidersHorizontal, User } from "lucide-react";
 import { cn } from "../lib/utils";
 import FiltersPanel from "./FiltersPanel";
 import { CityFilterPills } from "./SuburbFilter";
@@ -26,6 +22,8 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
+  const CHAT_SIDEBAR_WIDTH = 364;
+
   const [isChatActive, setIsChatActive] = useState(false);
   const [searchValue, setSearchValue] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -33,7 +31,12 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   const [selectedCity, setSelectedCity] = useState("All");
   const router = useRouter();
   const { user, loaded } = useClerk();
-  const { activeSessionId, activeChatMessages, chatsLoading, createNewChatSession } = useUserChats();
+  const {
+    activeSessionId,
+    activeChatMessages,
+    chatsLoading,
+    createNewChatSession,
+  } = useUserChats();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -42,7 +45,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
   const handleSubmit = () => {
     if (searchValue && searchValue.length > 0 && !isChatActive) {
-      closeSidebar(); 
+      closeSidebar();
       createNewChatSession(searchValue);
       setIsChatActive(true);
     }
@@ -77,9 +80,15 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
       {/* Search Header - appears when search is active */}
       <div
-        className={`absolute top-0 left-0 right-0 z-20 border-cyan-200/50 transition-all duration-500 ${
-          isChatActive ? "translate-y-0" : "-translate-y-full opacity-0"
-        }`}
+        className={cn(
+          "absolute top-0 right-0 z-20 border-cyan-200/50 transition-all duration-500",
+          isChatActive
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0"
+        )}
+        style={{
+          left: isChatActive ? CHAT_SIDEBAR_WIDTH : 0,
+        }}
       >
         <div className="flex flex-col p-4 max-w-4xl mx-auto">
           {/* Shared white rounded background */}
@@ -203,11 +212,12 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
       </div>
 
       {/* Results Panel - appears when search is active */}
-      <ChatSidebar 
+      <ChatSidebar
         open={isChatActive}
+        onToggle={setIsChatActive}
         send={searchValue ?? undefined}
         initialMessages={activeChatMessages}
-        activeSessionId={activeSessionId ?? undefined} 
+        activeSessionId={activeSessionId ?? undefined}
         isLoading={chatsLoading}
       />
 

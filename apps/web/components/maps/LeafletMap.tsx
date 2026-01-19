@@ -36,6 +36,11 @@ export const Polygon = dynamic(
   { ssr: false }
 );
 
+export const Tooltip = dynamic(
+  () => import("react-leaflet").then((m) => m.Tooltip),
+  { ssr: false }
+);
+
 /* -------------------------------------------------- */
 /* Constants                                          */
 /* -------------------------------------------------- */
@@ -55,6 +60,7 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const [registered, setRegistered] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const onMapReady = () => {
     if (!registered) {
@@ -120,6 +126,8 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
             position={[property.lat, property.lng]}
             eventHandlers={{
               click: () => setSelectedIndex(index),
+              mouseover: () => setHoveredIndex(index),
+              mouseout: () => setHoveredIndex(null),
             }}
             icon={L.divIcon({
               className: "custom-marker-icon",
@@ -128,6 +136,22 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
               iconAnchor: [8, 8],
             })}
           >
+            {/* 🔹 Hover tooltip (address only) */}
+            {hoveredIndex === index && (
+              <Tooltip
+                direction="top"
+                offset={[0, -8]}
+                opacity={1}
+                permanent={false}
+                sticky
+              >
+                <div className="text-sm font-medium text-gray-800">
+                  {property.title} . {property.yield}
+                  <br />
+                  Click To View Details
+                </div>
+              </Tooltip>
+            )}
             {selectedIndex === index && (
               <Popup closeButton={false} autoPan maxWidth={800}>
                 <PropertyPreviewCard property={property} />
