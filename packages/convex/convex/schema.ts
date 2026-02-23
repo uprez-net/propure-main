@@ -90,6 +90,14 @@ export type DataSource = Infer<typeof dataSource>;
 export type ListingStatus = Infer<typeof listingStatus>;
 
 export default defineSchema({
+  // files: defineTable({
+  //   storageId: v.id("_storage"),
+  //   fileName: v.optional(v.string()),
+  //   url: v.optional(v.string()),
+  //   createdAt: v.float64(),
+  //   updatedAt: v.float64(),
+  // }).index("by_source", ["source"]),
+
   // ── Users ──
   users: defineTable({
     clerkUserId: v.string(),
@@ -201,6 +209,9 @@ export default defineSchema({
     postcode: v.string(),
     createdAt: v.float64(),
     updatedAt: v.float64(),
+    status: v.optional(
+      v.union(v.literal("pending"), v.literal("done"), v.literal("failed")),
+    ),
   })
     .index("by_state", ["state"])
     .index("by_state_suburb", ["state", "suburb"])

@@ -119,3 +119,16 @@ For a high-level architectural overview, see [docs/AI-AGENTS.md](docs/AI-AGENTS.
 [MIT](LICENSE)
 
 ---
+export default query({
+  handler: async (ctx) => {
+    console.log("Write and test your query function here!");
+    const abcd = await ctx.db.query("absMarketData").collect();
+    return abcd.map(obj =>
+  Object.fromEntries(
+    Object.entries(obj).filter(
+      ([key]) => key !== "_id" && key !== "_creationTime"
+    )
+  )
+);
+  },
+})
